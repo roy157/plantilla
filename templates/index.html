@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Tive</title>
+    <title>G-TIVE</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; scroll-behavior: smooth; }
         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 95%; max-width: 1000px; }
@@ -31,25 +32,75 @@
             border-radius: 6px; border: 1px solid #dee2e6; font-weight: 500;
         }
 
-        .textarea-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0px; margin-top: 20px; }
-        .header-buttons-left { display: flex; gap: 5px; }
+/* Contenedores de pestañas */
+.tabs-container { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    padding: 0 5px; /* Ajuste fino lateral */
+}
 
-        .btn-small { 
-            border: none; border-radius: 6px 6px 0 0; padding: 7px 15px; 
-            font-size: 12px; cursor: pointer; font-weight: bold; color: white; 
-            transition: opacity 0.2s; text-decoration: none; display: inline-flex; align-items: center;
+.header-buttons-left { display: flex; gap: 4px; }
+
+.btn-tab { 
+    border: none; 
+    padding: 8px 16px; 
+    font-size: 12px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    color: white; 
+    text-decoration: none; 
+    display: inline-flex; 
+    align-items: center; 
+    transition: filter 0.2s;
+}
+
+/* Unión Superior: Se apoya sobre el borde del textarea */
+.tabs-top .btn-tab { 
+    border-radius: 8px 8px 0 0; 
+    margin-bottom: -2px; /* Elimina el espacio con el borde negro */
+    position: relative;
+    z-index: 3;
+}
+
+/* Unión Inferior: Sube para tapar el borde inferior del textarea */
+.tabs-bottom { 
+    margin-top: -2px; /* Ajuste para pegar perfectamente abajo */
+    position: relative;
+    z-index: 3;
+}
+
+.tabs-bottom .btn-tab { 
+    border-radius: 0 0 8px 8px; 
+}
+
+/* Caja de Texto: El corazón del diseño */
+textarea { 
+            width: 100%; 
+            height: 260px; 
+            padding: 15px; 
+            /* --- CAMBIO AQUÍ: Borde fino y suave --- */
+            border: 1px solid #dadce0; 
+            /* Bordes redondeados uniformes para suavidad */
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-family: 'Consolas', monospace; 
+            font-size: 14px; 
+            display: block; 
+            line-height: 1.6; 
+            outline: none; 
+            position: relative; 
+            z-index: 2;
+            background: white;
+            /* Opcional: una sombra muy tenue para dar profundidad */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .btn-copy { background: #6f42c1; } 
-        .btn-follow { background: #007bff; } 
-        .btn-ia { background: #e91e63; } 
-        .btn-clear-mini { background: #f2994a; } 
-
-        textarea { 
-            width: 100%; height: 260px; padding: 15px; border: 1px solid #dadce0; 
-            border-radius: 8px 0 8px 8px; box-sizing: border-box; font-family: 'Consolas', monospace; 
-            font-size: 14px; margin-bottom: 20px; resize: vertical; display: block; line-height: 1.6;
-        }
+/* Colores de tus botones */
+.btn-copy { background: #6f42c1; } 
+.btn-follow { background: #007bff; } 
+.btn-ia { background: #e91e63; } 
+.btn-clear-mini { background: #f2994a; }
 
         .buttons { display: flex; gap: 15px; }
         button.main-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
@@ -76,11 +127,20 @@
 <div class="container">
     <h2>📝 Panel de Generación TIVE</h2>
 
-    <form method="POST" id="mainForm">
-        <div class="config-row">
+    <form method="POST" id="mainForm" enctype="multipart/form-data">
+<div class="config-row">
             <div class="col-depto">
                 <label class="label-title">📍 Sede Registral:</label>
-                <input list="deptos" id="depto_input" class="search-box" placeholder="Sede..." value="{{ depto_previo }}" autocomplete="off">
+                <input list="deptos" id="depto_input" class="search-box" placeholder="Sede..." value="{{ depto_previo }}" autocomplete="off" onfocus="this.select()" style="margin-bottom: 10px;">
+                
+                <div class="opciones-placa" style="padding: 5px; width: fit-content;">
+                    <div class="radio-group" style="gap: 10px;">
+                        <span style="font-size: 11px; font-weight: bold; color: #5f6368; align-self: center; margin-left: 5px;">¿EDITAR AZURA?</span>
+                        <label class="radio-item" style="padding: 5px 10px; flex: none;"><input type="radio" name="edit_az" value="NO" checked onclick="toggleAzura()"> NO</label>
+                        <label class="radio-item" style="padding: 5px 10px; flex: none;"><input type="radio" name="edit_az" value="SI" onclick="toggleAzura()"> SI</label>
+                    </div>
+                </div>
+
                 <datalist id="deptos">
                     <option value="ABANCAY"> <option value="ANDAHUAYLAS"> <option value="AREQUIPA">
                     <option value="AYACUCHO"> <option value="BAGUA"> <option value="BARRANCA">
@@ -109,27 +169,53 @@
                 <label class="label-title">❓ ¿En qué lado está el guion de la placa?</label>
                 <div class="opciones-placa">
                     <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="pos_guion" value="izq" id="g_izq" {% if pos_guion == 'izq' %}checked{% endif %}> Izquierdo</label>
-                        <label class="radio-item"><input type="radio" name="pos_guion" value="cen" id="g_cen" {% if pos_guion == 'cen' or not pos_guion %}checked{% endif %}> Central</label>
-                        <label class="radio-item"><input type="radio" name="pos_guion" value="der" id="g_der" {% if pos_guion == 'der' %}checked{% endif %}> Derecho</label>
+                        <label class="radio-item"><input type="radio" name="pos_guion" value="izq" id="g_izq" {% if pos_guion == 'izq' %}checked{% endif %}> Izquierdo (AB-1234)</label>
+                        <label class="radio-item"><input type="radio" name="pos_guion" value="cen" id="g_cen" {% if pos_guion == 'cen' or not pos_guion %}checked{% endif %}> Central (ABC-123)</label>
+                        <label class="radio-item"><input type="radio" name="pos_guion" value="der" id="g_der" {% if pos_guion == 'der' %}checked{% endif %}> Derecho (1234-AB)</label>
                     </div>
+                </div>
+
+                <div id="row_azura" style="display: none; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="azura_verif" class="search-box" style="flex: 1; padding: 10px; font-size: 14px; text-align: center; border-radius: 20px;" placeholder="Verificación">
+                    <input type="text" id="azura_fecha" class="search-box" style="flex: 1; padding: 10px; font-size: 14px; text-align: center; border-radius: 20px;" placeholder="Fecha">
+                    <input type="text" id="azura_tarjeta" class="search-box" style="flex: 1; padding: 10px; font-size: 14px; text-align: center; border-radius: 20px;" placeholder="N° Tarjeta">
                 </div>
             </div>
         </div>
 
-        <div class="textarea-header">
+        <div class="tabs-container tabs-top">
             <div class="header-buttons-left">
-                <a href="https://copialiteral-altoque.sunarp.gob.pe/" target="_blank" class="btn-small btn-copy">📄 Copia Literal</a>
-                <a href="https://siguelo.sunarp.gob.pe/siguelo/titulo" target="_blank" class="btn-small btn-follow">🔗 Síguelo</a>
-                <a href="https://www.kimi.com/chat/19d69311-24c2-87ea-8000-090b9ecebbf2" target="_blank" class="btn-small btn-ia">🤖 IA</a>
+                <a href="https://gemini.google.com/app/79e16670844df0d2?hl=es" target="_blank" class="btn-tab btn-copy">✨ Gemini</a>
+                <a href="https://www.kimi.com/chat/19d73f72-1332-80fc-8000-090b47082233?chat_enter_method=history" target="_blank" class="btn-tab btn-follow">✨ Kimi</a>
+                <a href="https://chat.mistral.ai/chat/4e58a83d-00e0-4775-a698-ca5ef0b1140d" target="_blank" class="btn-tab btn-ia">✨ Mistral</a>
             </div>
-            <button type="button" class="btn-small btn-clear-mini" onclick="limpiarFormulario()">🧹 Limpiar Todo</button>
+            <button type="button" class="btn-tab btn-clear-mini" onclick="limpiarFormulario()">🧹 Limpiar Todo</button>
         </div>
+
         <textarea name="texto_datos" id="texto_datos" placeholder="Pegue la información aquí...">{{ texto }}</textarea>
 
+        <div class="tabs-container tabs-bottom">
+            <div class="header-buttons-left">
+                <a href="https://consultavehicular.sunarp.gob.pe/" target="_blank" class="btn-tab btn-follow">🔍Consulta Veh.</a>
+                <a href="https://copialiteral-altoque.sunarp.gob.pe/" target="_blank" class="btn-tab btn-copy">📄 Copia Literal</a>
+                <a href="https://sprl.sunarp.gob.pe/sprl/main/partidas-base-grafica-registral" target="_blank" class="btn-tab btn-copy">📄 Registros Sunarp</a>
+                <a href="https://siguelo.sunarp.gob.pe/siguelo/titulo" target="_blank" class="btn-tab btn-ia">🔗 Síguelo</a>
+            </div>
+        </div>
         <input type="hidden" name="depto_nombre" id="depto_nombre" value="{{ depto_previo }}">
+
+        <div id="drop-zone" style="display: none; margin-top: 10px; background: #e8f0fe; padding: 20px; border-radius: 8px; border: 2px dashed #1a73e8; text-align: center; cursor: pointer; transition: background 0.3s;">            <div style="pointer-events: none;"> 
+                <span style="font-size: 30px; display: block;">📂</span>
+                <strong style="color: #1a73e8; display: block; margin-top: 5px;">Arrastra aquí tu PDF o haz clic para seleccionar</strong>
+                <span id="file-name" style="display: block; margin-top: 8px; font-size: 13px; color: #555; font-weight: bold;">Ningún archivo seleccionado</span>
+            </div>
+            <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" style="display: none;">
+            <small style="display: block; margin-top: 10px; color: #666; pointer-events: none;">El recorte se aplicará automáticamente al generar la imagen.</small>
+        </div>
+        <br>
         
         <div class="buttons">
+
             <button type="button" id="btn_preview" onclick="actualizarDatosYEnviar('preview')" class="main-btn btn-preview" disabled>🔍 Generar Vista Previa</button>
             <button type="button" onclick="actualizarDatosYEnviar('download')" class="main-btn btn-download">📥 Descargar PDF</button>
         </div>
@@ -150,6 +236,7 @@ const datosDeptos = {
     "SULLANA": { zona: "ZONA REGISTRAL Nº I", sede: "SEDE REGISTRAL - SULLANA", foto: "sullana" },
     "TUMBES": { zona: "ZONA REGISTRAL Nº I", sede: "SEDE REGISTRAL - TUMBES", foto: "tumbes" },
     "CHICLAYO": { zona: "ZONA REGISTRAL Nº II", sede: "SEDE REGISTRAL - CHICLAYO", foto: "chiclayo" },
+    "CAJAMARCA": { zona: "ZONA REGISTRAL Nº II", sede: "SEDE REGISTRAL - CAJAMARCA", foto: "cajamarca" },
     "BAGUA": { zona: "ZONA REGISTRAL Nº II", sede: "SEDE REGISTRAL - BAGUA", foto: "bagua" },
     "CHACHAPOYAS": { zona: "ZONA REGISTRAL Nº II", sede: "SEDE REGISTRAL - CHACHAPOYAS", foto: "chachapoyas" },
     "JAEN": { zona: "ZONA REGISTRAL Nº II", sede: "SEDE REGISTRAL - JAEN", foto: "jaen" },
@@ -208,37 +295,100 @@ const inputDepto = document.getElementById('depto_input');
 const hiddenDepto = document.getElementById('depto_nombre');
 const btnPreview = document.getElementById('btn_preview');
 
-// --- LÓGICA DE DETECCIÓN INTELIGENTE ---
+// --- LÓGICA UNIFICADA: LIMPIEZA Y DETECCIÓN DE SEDE ---
+
+function actualizarCabeceraSede(sedeDetectada) {
+    const infoSede = datosDeptos[sedeDetectada];
+    if (infoSede) {
+        let contenido = textarea.value;
+        
+        // 1. Limpiamos líneas antiguas para evitar duplicados
+        let lineasRestantes = contenido.split('\n').filter(l => 
+            !l.toLowerCase().startsWith('zona_registral:') && 
+            !l.toLowerCase().startsWith('sede:') && 
+            !l.toLowerCase().startsWith('foto:') &&
+            !l.toLowerCase().startsWith('sede_partida:') 
+        );
+
+        // 2. Insertamos la nueva cabecera con la sede actualizada
+        let cabecera = [
+            `zona_registral: ${infoSede.zona}`,
+            `sede: ${infoSede.sede}`,
+            `foto: ${infoSede.foto}`,
+            `sede_partida: ${sedeDetectada}`,
+            "" 
+        ];
+        
+        textarea.value = cabecera.join('\n') + lineasRestantes.join('\n').trim();
+        hiddenDepto.value = sedeDetectada;
+        btnPreview.disabled = false;
+    }
+}
+
+// Evento al seleccionar desde la lista desplegable (Arregla Cajamarca)
+inputDepto.addEventListener('change', function() {
+    const valor = this.value.trim().toUpperCase();
+    if (datosDeptos[valor]) {
+        actualizarCabeceraSede(valor);
+    }
+});
+
+// Evento al escribir o PEGAR (Limpia citas y detecta sede)
 textarea.addEventListener('input', function() {
-    const contenido = this.value;
+    let contenido = this.value;
+
+    // A. Limpieza automática de corchetes y contenido interno
+    const regexCitas = /\[[^\]]*\]/g;
+    if (regexCitas.test(contenido)) {
+        // Elimina los corchetes y quita espacios extra al final de la línea
+        contenido = contenido.replace(regexCitas, '').replace(/[ \t]+$/gm, '');
+        this.value = contenido;
+    }
+
+    // B. Detección automática de sede_partida si existe en el texto
+    const coincidencia = contenido.match(/sede_partida:\s*([^\n\r]+)/i);
+    if (coincidencia && coincidencia[1]) {
+        const sedeDetectada = coincidencia[1].trim().toUpperCase();
+        if (datosDeptos[sedeDetectada] && hiddenDepto.value !== sedeDetectada) {
+            inputDepto.value = sedeDetectada;
+            actualizarCabeceraSede(sedeDetectada);
+        }
+    }
+});
+
+// Evento al seleccionar desde la lista de arriba
+inputDepto.addEventListener('change', function() {
+    const valor = this.value.toUpperCase();
+    if (datosDeptos[valor]) {
+        actualizarCabeceraSede(valor);
+    }
+});
+
+// Evento al escribir o pegar manualmente en el cuadro de texto
+textarea.addEventListener('input', function() {
+    let contenido = this.value;
+
+    // --- NUEVO: Limpieza de citas ---
+    // Busca cualquier contenido entre corchetes y lo elimina
+    const regexCitas = /\[[^\]]*\]/g;
+    if (regexCitas.test(contenido)) {
+        // Reemplaza corchetes y quita espacios sobrantes al final de cada línea
+        contenido = contenido.replace(regexCitas, '').replace(/[ \t]+$/gm, '');
+        this.value = contenido; 
+    }
+    
+    // --- Lógica existente para detectar sede_partida ---
     const coincidencia = contenido.match(/sede_partida:\s*([^\n\r]+)/i);
     
     if (coincidencia && coincidencia[1]) {
         const sedeDetectada = coincidencia[1].trim().toUpperCase();
-        
-        // SOLO ejecutar si la sede detectada es diferente a la actual
         if (datosDeptos[sedeDetectada] && hiddenDepto.value !== sedeDetectada) {
             inputDepto.value = sedeDetectada;
-            hiddenDepto.value = sedeDetectada;
-            btnPreview.disabled = false;
-
-            let lineasRestantes = contenido.split('\n').filter(l => 
-                !l.toLowerCase().startsWith('zona_registral:') && 
-                !l.toLowerCase().startsWith('sede:') && 
-                !l.toLowerCase().startsWith('foto:')
-            );
-
-            let cabecera = [
-                `zona_registral: ${datosDeptos[sedeDetectada].zona}`,
-                `sede: ${datosDeptos[sedeDetectada].sede}`,
-                `foto: ${datosDeptos[sedeDetectada].foto}`,
-                "" 
-            ];
-            
-            this.value = cabecera.join('\n') + lineasRestantes.join('\n').trim();
+            actualizarCabeceraSede(sedeDetectada);
         }
     }
 });
+
 
 function limpiarFormulario() {
     textarea.value = ""; inputDepto.value = ""; hiddenDepto.value = "";
@@ -275,24 +425,159 @@ function procesarGuionPlaca(texto) {
     return lineas.join('\n');
 }
 
+// Función para mostrar u ocultar los formularios a la derecha
+function toggleAzura() {
+    const seleccion = document.querySelector('input[name="edit_az"]:checked').value;
+    const esSi = (seleccion === 'SI');
+    
+    // Muestra/oculta los inputs de texto (Verificación, Fecha, Tarjeta)
+    document.getElementById('row_azura').style.display = esSi ? 'flex' : 'none';
+    
+    // Muestra/oculta la zona de carga de PDF
+    document.getElementById('drop-zone').style.display = esSi ? 'block' : 'none';
+}
+
 function actualizarDatosYEnviar(action) {
     let contenido = textarea.value;
     contenido = procesarGuionPlaca(contenido);
-    if (!contenido.toLowerCase().includes("fecha:")) { 
+
+    function forzarEtiqueta(texto, etiqueta, valorNuevo) {
+        const regex = new RegExp("^" + etiqueta + ":.*$", "mi");
+        if (regex.test(texto)) {
+            return texto.replace(regex, `${etiqueta}: ${valorNuevo}`);
+        } else {
+            return texto.trim() + `\n${etiqueta}: ${valorNuevo}`;
+        }
+    }
+
+    // --- Lógica de Prioridad para Azura ---
+    const modoAzura = document.querySelector('input[name="edit_az"]:checked').value === 'SI';
+    const valVerif = document.getElementById('azura_verif').value.trim();
+    const valFecha = document.getElementById('azura_fecha').value.trim();
+    const valTarjeta = document.getElementById('azura_tarjeta').value.trim();
+
+    // 1. Fecha: Si está en SI y tiene texto, manda ese. Si no, genera el automático.
+    if (modoAzura && valFecha !== "") {
+        contenido = forzarEtiqueta(contenido, "fecha", valFecha);
+    } else if (!/fecha:\s*\S/.test(contenido.toLowerCase())) {
         const ahora = new Date();
         const f = `${String(ahora.getDate()).padStart(2, '0')}/${String(ahora.getMonth() + 1).padStart(2, '0')}/${ahora.getFullYear()} ${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}:${String(ahora.getSeconds()).padStart(2, '0')}`;
-        contenido += `\nfecha: ${f}`; 
+        contenido = forzarEtiqueta(contenido, "fecha", f);
     }
-    if (!contenido.toLowerCase().includes("numero_tarjeta:")) { contenido += `\nnumero_tarjeta: ${generarAleatorio("10", 10)}`; }
-    if (!contenido.toLowerCase().includes("verificacion:")) { contenido += `\nverificacion: ${generarAleatorio("", 8)}`; }
-    
+
+    // 2. Número de Tarjeta: Prioridad manual
+    if (modoAzura && valTarjeta !== "") {
+        contenido = forzarEtiqueta(contenido, "numero_tarjeta", valTarjeta);
+    } else if (!/numero_tarjeta:\s*\S/.test(contenido.toLowerCase())) {
+        contenido = forzarEtiqueta(contenido, "numero_tarjeta", generarAleatorio("10", 10));
+    }
+
+// 3. Verificación: Prioridad manual
+    if (modoAzura && valVerif !== "") {
+        contenido = forzarEtiqueta(contenido, "verificacion", valVerif);
+    } else if (!/verificacion:\s*\S/.test(contenido.toLowerCase())) {
+        contenido = forzarEtiqueta(contenido, "verificacion", generarAleatorio("", 8));
+    }
+
+    // --- NUEVO: Agregar unidades tn y mt solo en modo Azura ---
+// --- NUEVO: Lógica de Azura (Unidades y Limpieza de campos) ---
+    if (modoAzura) {
+        const camposTN = ["p_bruto", "p_neto", "carga_util"];
+        const camposMT = ["longitud", "altura", "ancho"];
+        const camposOmitir = ["placa_anterior", "año_fabricacion"]; // Campos a eliminar
+
+        let lineas = contenido.split('\n');
+        let lineasFiltradas = [];
+
+        for (let i = 0; i < lineas.length; i++) {
+            let [etiq, ...valorPartes] = lineas[i].split(':');
+            let clave = etiq.trim().toLowerCase();
+            let valorOriginal = valorPartes.join(':').trim();
+
+            // 1. Omitir placa_anterior y año_fabricacion
+            if (camposOmitir.includes(clave)) {
+                continue; // Salta esta línea, no la agrega al nuevo array
+            }
+
+            // 2. Agregar unidades tn/mt
+            if (camposTN.includes(clave) && valorOriginal !== "" && !valorOriginal.toLowerCase().includes('tn')) {
+                lineasFiltradas.push(`${clave}: ${valorOriginal} tn`);
+            } else if (camposMT.includes(clave) && valorOriginal !== "" && !valorOriginal.toLowerCase().includes('mt')) {
+                lineasFiltradas.push(`${clave}: ${valorOriginal} mt`);
+            } else {
+                // Mantener la línea tal cual para el resto de campos
+                lineasFiltradas.push(lineas[i]);
+            }
+        }
+        contenido = lineasFiltradas.join('\n');
+    }
+
     textarea.value = contenido.trim();
     const form = document.getElementById('mainForm');
     form.action = (action === 'download') ? '/descargar' : '/';
     form.submit();
 }
 
-window.onload = function() { if (inputDepto.value && datosDeptos[inputDepto.value.toUpperCase()]) btnPreview.disabled = false; };
+window.onload = function() { 
+    if (inputDepto.value && datosDeptos[inputDepto.value.toUpperCase()]) btnPreview.disabled = false;
+    toggleAzura(); // Ejecuta la lógica al cargar para sincronizar el estado inicial
+};
+
+/// --- LÓGICA DE ARRASTRAR Y SOLTAR PDF CORREGIDA ---
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('pdf_file');
+const fileNameDisplay = document.getElementById('file-name');
+
+// Abrir selector SOLO cuando se hace clic en el contenedor principal
+dropZone.addEventListener('click', (e) => {
+    // Evitamos que si hay algún elemento interno con eventos, se duplique
+    if (e.target !== fileInput) {
+        fileInput.click();
+    }
+});
+
+// Mostrar el nombre del archivo cuando se selecciona
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        fileNameDisplay.textContent = "✅ Archivo cargado: " + fileInput.files[0].name;
+        dropZone.style.background = "#e6fffa";
+        dropZone.style.borderColor = "#34a853";
+    }
+});
+
+// Prevenir comportamiento por defecto en arrastre
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    }, false);
+});
+
+// Efectos visuales al arrastrar
+dropZone.addEventListener('dragover', () => {
+    dropZone.style.background = "#d2e3fc";
+    dropZone.style.borderColor = "#174ea6";
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.background = "#e8f0fe";
+    dropZone.style.borderColor = "#1a73e8";
+});
+
+// Acción al soltar el archivo
+dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0 && files[0].type === "application/pdf") {
+        fileInput.files = files; // Asigna el archivo al input
+        fileNameDisplay.textContent = "✅ Archivo soltado: " + files[0].name;
+        dropZone.style.background = "#e6fffa";
+        dropZone.style.borderColor = "#34a853";
+    } else {
+        alert("Por favor, suelta solo archivos PDF.");
+    }
+});
 </script>
 </body>
 </html>
